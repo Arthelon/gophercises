@@ -59,21 +59,23 @@ func initQuestions(filePath string) []Question {
 func main() {
 	var timeLimit int
 	var csvPath string
+	var shuffle bool
 	flag.IntVar(&timeLimit, "limit", 10, "Time limit for each question in seconds")
 	flag.StringVar(&csvPath, "path", "problems.csv", "Path to problems source file")
+	flag.BoolVar(&shuffle, "shuffle", false, "Will shuffle questions if true")
 	flag.Parse()
 
-	questions := initQuestions(csvPath)
-	// shuffle questions
-	done := make(chan bool)
-	shuffler := rand.Perm(len(questions))
-	shuffled := make([]Question, len(questions))
-	for i, v := range shuffler {
-		shuffled[i] = questions[v]
-	}
-	questions = shuffled
-
 	score := 0
+	done := make(chan bool)
+	questions := initQuestions(csvPath)
+	if shuffle {
+		shuffler := rand.Perm(len(questions))
+		shuffled := make([]Question, len(questions))
+		for i, v := range shuffler {
+			shuffled[i] = questions[v]
+		}
+		questions = shuffled
+	}
 
 	go func() {
 		for idx, question := range questions {
