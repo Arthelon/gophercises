@@ -31,6 +31,7 @@ func initQuestions(filePath string) []Question {
 	if err != nil {
 		handleError(err)
 	}
+	defer file.Close()
 	reader := csv.NewReader(bufio.NewReader(file))
 	for {
 		record, err := reader.Read()
