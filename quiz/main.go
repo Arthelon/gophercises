@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -23,7 +24,7 @@ func handleError(err error) {
 	os.Exit(1)
 }
 
-func initQuestions(filePath string) *[]Question {
+func initQuestions(filePath string) []Question {
 	output := []Question{}
 
 	file, err := os.Open(filePath)
@@ -52,7 +53,7 @@ func initQuestions(filePath string) *[]Question {
 		})
 	}
 
-	return &output
+	return output
 }
 
 func main() {
@@ -63,12 +64,19 @@ func main() {
 	flag.Parse()
 
 	questions := initQuestions(csvPath)
+	// shuffle questions
 	done := make(chan bool)
+	shuffler := rand.Perm(len(questions))
+	shuffled := make([]Question, len(questions))
+	for i, v := range shuffler {
+		shuffled[i] = questions[v]
+	}
+	questions = shuffled
 
 	score := 0
 
 	go func() {
-		for idx, question := range *questions {
+		for idx, question := range questions {
 			scanner := bufio.NewScanner(os.Stdin)
 			fmt.Printf("#%d: %s\n", idx+1, question.text)
 			timer := time.NewTimer(time.Second * time.Duration(timeLimit))
@@ -93,5 +101,5 @@ func main() {
 		done <- true
 	}()
 	<-done
-	fmt.Printf("You scored %d out of %d", score, len(*questions))
+	fmt.Printf("You scored %d out of %d", score, len(questions))
 }
