@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"time"
 )
 
 type Question struct {
@@ -61,23 +62,35 @@ func main() {
 	flag.Parse()
 
 	questions := initQuestions(csvPath)
+	done := make(chan bool)
 
 	score := 0
-	for idx, question := range *questions {
-		scanner := bufio.NewScanner(os.Stdin)
-		fmt.Printf("#%d: %s\n", idx+1, question.text)
-		scanner.Scan()
-		resp := scanner.Text()
-		respConv, err := strconv.Atoi(resp)
-		for err != nil {
-			fmt.Printf("Invalid input: %s. Please try again\n", resp)
+
+	go func() {
+		for idx, question := range *questions {
+			scanner := bufio.NewScanner(os.Stdin)
+			fmt.Printf("#%d: %s\n", idx+1, question.text)
+			timer := time.NewTimer(time.Second * time.Duration(timeLimit))
+			go func() {
+				<-timer.C
+				done <- true
+			}()
 			scanner.Scan()
-			resp = scanner.Text()
-			respConv, err = strconv.Atoi(resp)
+			resp := scanner.Text()
+			respConv, err := strconv.Atoi(resp)
+			for err != nil {
+				fmt.Printf("Invalid input: %s. Please try again\n", resp)
+				scanner.Scan()
+				resp = scanner.Text()
+				respConv, err = strconv.Atoi(resp)
+			}
+			if respConv == question.answer {
+				score++
+			}
+			timer.Stop()
 		}
-		if respConv == question.answer {
-			score++
-		}
-	}
-	fmt.Printf("Total Score: %d out of %d", score, len(*questions))
+		done <- true
+	}()
+	<-done
+	fmt.Printf("You scored %d out of %d", score, len(*questions))
 }
