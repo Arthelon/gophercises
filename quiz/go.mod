@@ -1,1 +1,1 @@
-module gophercises/quiz
+module github.com/arthelon/gophercises/quiz
