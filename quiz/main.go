@@ -69,6 +69,8 @@ func main() {
 	done := make(chan bool)
 	questions := initQuestions(csvPath)
 	if shuffle {
+		// Seed with current time
+		rand.Seed(time.Now().UTC().UnixNano())
 		shuffler := rand.Perm(len(questions))
 		shuffled := make([]Question, len(questions))
 		for i, v := range shuffler {
