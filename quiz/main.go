@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -76,7 +77,7 @@ func main() {
 				done <- true
 			}()
 			scanner.Scan()
-			resp := scanner.Text()
+			resp := strings.Trim(scanner.Text(), " ")
 			respConv, err := strconv.Atoi(resp)
 			for err != nil {
 				fmt.Printf("Invalid input: %s. Please try again\n", resp)
